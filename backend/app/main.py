@@ -96,3 +96,51 @@ def create_lead(body: LeadIn, db: Session = Depends(get_db)):
     db.add(lead)
     db.commit()
     return {"id": lead.id}
+
+class CarIn(BaseModel):
+    brand: str = Field(min_length=1, max_length=50)
+    name: str = Field(min_length=1, max_length=100)
+    img: str = Field(min_length=1, max_length=100)
+    type: str = Field(min_length=1, max_length=20)
+    price: int = Field(gt=0)
+    hp: int = Field(gt=0)
+    acc: float = Field(gt=0)
+    engine: str = Field(min_length=1, max_length=100)
+    drive: str = Field(min_length=1, max_length=30)
+
+
+@app.post("/api/cars", status_code=201)
+def create_car(body: CarIn, db: Session = Depends(get_db)):
+    car = Car(**body.model_dump())
+    db.add(car)
+    db.commit()
+
+    # Инвалидация кэша: удаляем все ключи cars:*
+    cache = get_cache()
+    if cache:
+        try:
+            for key in cache.scan_iter(match="cars:*"):
+                cache.delete(key)
+        except redis.RedisError:
+            pass
+
+    return {"id": car.id}
+
+class CarIn(BaseModel):
+    brand: str = Field(min_length=1, max_length=50)
+    name: str = Field(min_length=1, max_length=100)
+    img: str = Field(min_length=1, max_length=100)
+    type: str = Field(min_length=1, max_length=20)
+    price: int = Field(gt=0)
+    hp: int = Field(gt=0)
+    acc: float = Field(gt=0)
+    engine: str = Field(min_length=1, max_length=100)
+    drive: str = Field(min_length=1, max_length=30)
+
+
+@app.post("/api/cars", status_code=201)
+def create_car(body: CarIn, db: Session = Depends(get_db)):
+    car = Car(**body.model_dump())
+    db.add(car)
+    db.commit()
+    return {"id": car.id}
